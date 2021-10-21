@@ -11,7 +11,7 @@ address = "ff:ff:38:5c:1c:3f"
 characteristic = "0000ffd9-0000-1000-8000-00805f9b34fb"
 
 async def main(address):
-    onOffCommand = bytes([-52, 35, 51])
+    onOffCommand = bytes([-52 & 0xff, 35, 51])
     print(onOffCommand)
     client = BleakClient(address)
     try:
