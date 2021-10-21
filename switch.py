@@ -11,8 +11,14 @@ address = "ff:ff:38:5c:1c:3f"
 characteristic = "0000ffd9-0000-1000-8000-00805f9b34fb"
 
 async def main(address):
+    turnOn = False
+    if len(sys.argv) >=2 and sys.argv[1] == 'on':
+        turnOn = True
+    print(turnOn)
     onOffCommand = bytes([-52 & 0xff, 35, 51])
-    print(onOffCommand)
+    if not turnOn:
+        onOffCommand = bytes([-52 & 0xff, 36, 51])
+    
     client = BleakClient(address)
     try:
         await client.connect()
