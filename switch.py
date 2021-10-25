@@ -2,9 +2,6 @@ import asyncio
 import sys
 from bleak import BleakClient
 
-# 0000ffd9-0000-1000-8000-00805f9b34fb
-# {-52, 35, 51}
-
 
 address = "ff:ff:38:5c:1c:3f"
 

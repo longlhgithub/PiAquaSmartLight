@@ -4,6 +4,7 @@ from bleak import BleakClient
 
 address = "ff:ff:38:5c:1c:3f"
 MODEL_NBR_UUID = "00002a24-0000-1000-8000-00805f9b34fb"
+                 "00002a25-0000-1000-8000-00805f9b34fb"
 
 async def main(address):
     client = BleakClient(address)
