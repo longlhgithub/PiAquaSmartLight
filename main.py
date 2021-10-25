@@ -11,6 +11,12 @@ async def handle_input():
             await d.stop_discover()
         await asyncio.sleep(0.1)
 async def main():
-    await handle_input()
+    # await handle_input()
+    await d.discover()
+    # while True:
+    await asyncio.sleep(15)
+    for t in d.scanner.discovered_devices:
+        print(t)
+
 
 asyncio.run(main())
