@@ -24,13 +24,20 @@
             "index": "pypi",
             "version": "==0.13.0"
         },
-        "dbus-next": {
+        "bleak-winrt": {
             "hashes": [
-                "sha256:58948f9aff9db08316734c0be2a120f6dc502124d9642f55e90ac82ffb16a18b",
-                "sha256:f4eae26909332ada528c0a3549dda8d4f088f9b365153952a408e28023a626a5"
+                "sha256:31aeb236ba59f779d18694be850e23131a02fc77919babf183a876a6cbe2ebc8",
+                "sha256:47c08ba2ba5bbf50892e50f772c01220c0f61055c6b6c0368122e86d8b099a22",
+                "sha256:60cb003399f0bd9522356ae39b748c1781cfb93394a47393ae4579f4a6e1d5db",
+                "sha256:6adcb5d3efd0790768bccf8dcf285d937f9fd86ad3b879869d92620af443d8b2",
+                "sha256:7de3d3ce87f420192fa97853e8eaf82ae6aacb1e76fd3d8008a45017cdb048f4",
+                "sha256:bef08a8cffc56e6e84c03ff24764e992212a26ce51cb255164fc800f6c6304d8",
+                "sha256:d0f92bebbaa91cd23dc3daec29ccc93d34e540d1679cf31f6d63b43b9d0ec6a7",
+                "sha256:d19a19a24c1d5f776e2951e21c961b1fba86f97608f9999586f1698da7dfddce",
+                "sha256:ffa15cf859eb4c90da946245386983d9036aa510299bdbd0a838cb104203d5b5"
             ],
-            "markers": "platform_system == 'Linux'",
-            "version": "==0.2.3"
+            "markers": "platform_system == 'Windows'",
+            "version": "==1.0.1"
         }
     },
     "develop": {}

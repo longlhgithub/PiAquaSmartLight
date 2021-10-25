@@ -3,7 +3,7 @@ import sys
 from bleak import BleakClient
 
 
-address = "ff:ff:38:5c:1c:3f"
+address = "FF:FF:38:5C:1C:3F"
 
 characteristic = "0000ffd9-0000-1000-8000-00805f9b34fb"
 
