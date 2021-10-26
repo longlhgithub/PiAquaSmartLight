@@ -1,0 +1,8 @@
+mqtt:
+  server_url: 192.168.31.88
+  username: admin
+  password: hoanglong1
+
+pair_device:
+  - address: FF:FF:38:5C:1C:3F
+  - address: test

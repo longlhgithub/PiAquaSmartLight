@@ -13,6 +13,7 @@ async def main(address):
         services = await client.get_services()
         for service in services:
             print(service)
+            service.
             for c in service.characteristics:
                 print(c)
         # model_number = await client.read_gatt_char(MODEL_NBR_UUID)
