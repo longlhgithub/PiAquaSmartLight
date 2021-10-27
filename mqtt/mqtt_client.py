@@ -8,16 +8,18 @@ import yaml
 from gmqtt import Client 
 class MQTTClient:
     STOP = asyncio.Event()
-    def __init__(self,host,username,password) -> None:
+    def __init__(self,host,username,password,on_message, cmd_topic="aqualight/cmd") -> None:
         self.host = host
         self.username= username
         self.password = password
-        self.client = Client("client-py")
+        self.cmd_topic = cmd_topic
+        self.client = Client("aqualight")
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
-        self.client.on_subscribe = self.on_subscribe
+        self.client.on_subscribe = self.on_subscribe        
         self.client.set_auth_credentials(self.username, self.password)
+        self.on_message_callback = on_message
        
 
        
@@ -39,11 +41,14 @@ class MQTTClient:
 
     def on_connect(self, client, flags, rc, properties):
         print('Connected')
-        # client.subscribe('ttt/#', qos=0)
+        print(f'subscribing to {self.cmd_topic}')
+        client.subscribe(self.cmd_topic, qos=0)
 
 
-    def on_message(self, client, topic, payload, qos, properties):
-        print('RECV MSG:', payload)
+    def on_message(self, client, topic, payload:bytes, qos, properties):
+        # print('RECV MSG:', payload)
+        self.on_message_callback(payload.decode('utf-8'))
+
 
 
     def on_disconnect(self, client, packet, exc=None):

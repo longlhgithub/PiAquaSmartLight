@@ -1,0 +1,59 @@
+from bleak import BleakClient
+class HappyLightDevice:
+    CONSMART_BLE_180a_UUID = "0000180a-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_2a25_UUID = "00002a25-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_DATA_UUID = "0000ffd4-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_MUSICCHECK_UUID = "0000fff4-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_MUSICMOD_UUID = "0000fff9-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_TIME_UUID = "0000fff7-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID = "0000ffd9-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_SERVICE_DATA_UUID = "0000ffd0-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_NOTIFICATION_SERVICE_WRGB_UUID = "0000ffd5-0000-1000-8000-00805f9b34fb";
+    CONSMART_BLE_WRITE_CHARACTERISTICS_MUSICCHECK_UUID = "0000fff3-0000-1000-8000-00805f9b34fb";
+    # public static final int SLIC_BLE_MANUFACTURER_DATA_LEN = 4;
+    SLIC_BLE_NOTIFICATION_CHARACTERISTICS_SIGNAL_UUID = "00002a06-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_NOTIFICATION_SERVICE_SIGNAL_UUID = "00001803-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_BATTERY_UUID = "00002a19-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_DEVICE_INFO_MANUFACTURER_NAME_UUID = "00002a29-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_INFO_ADDRESS_UUID = "00002a03-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_INFO_APPEARANCE_UUID = "00002a01-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_INFO_DEVICE_NAME_UUID = "00002a00-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_CHARACTERISTICS_TX_POWER_LEVEL_UUID = "00002a07-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_SERVICE_BATTERY_UUID = "0000180f-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_SERVICE_DEVICE_INFO_UUID = "0000180a-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_SERVICE_INFO_UUID = "00001800-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_READ_SERVICE_TX_POWER_LEVEL_UUID = "00001804-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_WRITE_CHARACTERISTICS_SOUND_ALERT_UUID = "00002a06-0000-1000-8000-00805f9b34fb";
+    SLIC_BLE_WRITE_SERVICE_SOUND_ALERT_HIGH_UUID = "00001802-0000-1000-8000-00805f9b34fb";
+    SWITCH_CAMERA_FIND_CHARA = "0000ffd1-0000-1000-8000-00805f9b34fb";
+    SWITCH_CAMERA_FIND_SERVICE = "0000ffd0-0000-1000-8000-00805f9b34fb";
+    SWITCH_FLIGHTMODE = "0000ffd3-0000-1000-8000-00805f9b34fb";
+
+    def __init__(self,address:str) -> None:
+        self.address = address      
+        self.client = BleakClient(address)  
+        self.client.set_disconnected_callback(self.on_disconnected)
+    
+    def on_disconnected(self, client):
+        print(f'device {self.address} is disconnected')
+
+    async def connect(self) -> bool:
+        if not self.client.is_connected:
+            print(f'connecting to HappyLightDevice at {self.address}')
+            return await self.client.connect()
+        else:
+            return True
+
+    async def pair(self)-> bool:
+        return await self.client.pair()
+    # functions
+    async def set_power(self,state:bool):
+        if await self.connect():
+            onOffCommand = bytes([-52 & 0xff, 35, 51])
+            if not state:
+                onOffCommand = bytes([-52 & 0xff, 36, 51])
+           
+            await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,onOffCommand,True)
+           
+        else:
+           raise Exception(f"device {self.address} is not connected")

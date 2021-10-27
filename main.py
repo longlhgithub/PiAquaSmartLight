@@ -1,7 +1,7 @@
 from asyncio import tasks
-from device import Device
+from device import HappyLightDevice
 import asyncio
-d = Device()
+d = HappyLightDevice()
 async def handle_input():
     while True:
         user_input  = input('your CMD: ')
