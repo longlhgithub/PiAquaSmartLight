@@ -7,7 +7,8 @@ print(settings)
 message_processor = MessageProcessor(settings['pair_device'][0]['address'])
 def on_message(payload):
     print('MSG:', payload)
-    asyncio.create_task(message_processor.process(payload))
+    # asyncio.create_task(message_processor.process(payload))
+    asyncio.ensure_future(message_processor.process(payload))
     
 
 mqtt_client = MQTTClient(settings['mqtt']['server_url'],settings['mqtt']['username'],settings['mqtt']['password'],on_message)
