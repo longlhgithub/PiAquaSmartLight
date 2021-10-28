@@ -10,7 +10,15 @@ class DeviceState:
         self.power_state = False
     def __str__(self):
         power = 'ON' if self.power_state else 'OFF'
-        return f"Power: {power}, RGB({self.red},{self.green},{self.blue})"
+        return f"Power: {power}, RGB({self.red},{self.green},{self.blue}), Brightness: {self.brightness}"
+    
+    def set_state(self,red,green,blue,brightness):
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.brightness = brightness
+
+
 class HappyLightDevice:
     CONSMART_BLE_180a_UUID = "0000180a-0000-1000-8000-00805f9b34fb";
     CONSMART_BLE_2a25_UUID = "00002a25-0000-1000-8000-00805f9b34fb";
@@ -162,3 +170,4 @@ class HappyLightDevice:
         blue = color.get('blue')
         data = bytes([86,int(red*brightness/100),int(green*brightness/100),int(blue*brightness/100),0, -16 & 0xff, -86 & 0xff])
         await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,data)
+        self.state.set_state(red,green,blue,brightness)
