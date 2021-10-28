@@ -101,11 +101,11 @@ class HappyLightDevice:
             red = data[6] & 255;
             green = data[7] & 255;
             blue = data[8] & 255;            
-            brightness = float(255) / float(max(red,green,blue))
-            red = red * brightness
-            green = green * brightness
-            blue = blue * brightness
-            self.state.brightness = brightness
+            brightness_ratio = float(255) / float(max(red,green,blue))
+            self.state.brightness = math.floor(float(max(red,green,blue))*100/255)
+            red = red * brightness_ratio
+            green = green * brightness_ratio
+            blue = blue * brightness_ratio            
             self.state.red = math.floor(red)
             self.state.green = math.floor(green)
             self.state.blue = math.floor(blue)
