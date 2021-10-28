@@ -40,7 +40,7 @@ class MQTTClient:
         self.client.publish('test', str(time.time()), qos=1)
 
     def on_connect(self, client, flags, rc, properties):
-        print('Connected')
+        print('MQTT connected')
         print(f'subscribing to {self.cmd_topic}')
         client.subscribe(self.cmd_topic, qos=0)
 
@@ -52,7 +52,7 @@ class MQTTClient:
 
 
     def on_disconnect(self, client, packet, exc=None):
-        print('Disconnected')
+        print('MQTT disconnected')
 
     def on_subscribe(self, client, mid, qos, properties):
         print('SUBSCRIBED')

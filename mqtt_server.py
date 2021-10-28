@@ -15,7 +15,8 @@ mqtt_client = MQTTClient(settings['mqtt']['server_url'],settings['mqtt']['userna
 mqtt_client.on_message = on_message
 
 async def main():
-    await mqtt_client.connect()
+    task = asyncio.create_task(message_processor.device.connect());
+    task2 = asyncio.create_task(mqtt_client.connect())
     while True:
         await asyncio.sleep(5)
 
