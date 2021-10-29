@@ -12,5 +12,4 @@ class TimeSlot:
     def __repr__(self) -> str:
         return f'<TimeSlot Color:{self.color}, Time: {self.time}>'
 
-    def __getattribute__(self, name: str) -> list:
-        return {'color':self.color.__getattribute__()}]
+    

@@ -1,5 +1,5 @@
 mqtt:
-  server_url: 192.168.31.88
+  server_url: 192.168.31.88 #broker.emqx.io
   username: admin
   password: hoanglong1
 
