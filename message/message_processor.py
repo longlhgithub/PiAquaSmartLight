@@ -25,9 +25,9 @@ class MessageProcessor:
                     print('POWER CMD -> INVALID ARGS')
                 else:
                     if args[0] == 'on':
-                        await self.device.set_power(True)
+                        await self.device.set_power_slowly(True)
                     else:
-                        await self.device.set_power(False)
+                        await self.device.set_power_slowly(False)
             elif c == 'color':
                 if len(args) <3 or len(args)>4:
                     print('COLOR CMD -> INVALID ARGS')

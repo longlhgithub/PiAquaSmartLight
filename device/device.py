@@ -139,19 +139,53 @@ class HappyLightDevice:
     async def pair(self)-> bool:
         return await self.client.pair()
     # functions
-    async def set_power(self,state:bool):
+    async def set_power(self,state:bool) -> bool:
         if await self.connect():
             onOffCommand = bytes([-52 & 0xff, 35, 51])
             if not state:
                 onOffCommand = bytes([-52 & 0xff, 36, 51])
            
             await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,onOffCommand,True)
+            self.state.power_state = state
+            return True
            
         else:
            raise Exception(f"device {self.address} is not connected")
 
 
-    async def set_color(self,**color):
+    async def set_power_slowly(self, state:bool):
+        if state == self.state.power_state:
+            return True
+        saved_brightness = self.state.brightness
+        init_brightness = self.state.brightness if self.state.power_state else 0
+        target_brightness = self.state.brightness if init_brightness == 0 else 0
+        divied_portion = 50
+        step = saved_brightness / divied_portion
+        current_brightness = init_brightness
+        await self.set_dimmer(math.floor(current_brightness))
+        if state:
+            await self.set_power(True)
+        print(f'set_power_slowly: {state}, init:{init_brightness}, target:{target_brightness}, saved: {saved_brightness}')
+        for x in range(divied_portion):
+            
+            if(target_brightness>init_brightness):
+                current_brightness += step
+            else:
+                 current_brightness -= step
+            print(f'current:{current_brightness}, target:{target_brightness}')
+            await self.set_dimmer(math.floor(current_brightness))
+            await asyncio.sleep(10/1000)
+        await self.set_power(state)
+        await asyncio.sleep(50/1000)
+        await self.set_dimmer(math.floor(saved_brightness))
+
+
+
+    async def set_dimmer(self,brightness:int):
+        await self.set_color(red=self.state.red,green=self.state.green,blue = self.state.blue, brightness=brightness)
+
+
+    async def set_color(self,**color)-> bool:
         #  byte[] bArr = {86, (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.green(myColor.color) * myColor.progress) / 100), (byte) ((Color.blue(myColor.color) * myColor.progress) / 100), (byte) (((myColor.warmWhite * myColor.progress) / 100) & 255), -16, -86};
         #         synTimedata((byte) 65, (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.green(myColor.color) * myColor.progress) / 100), (byte) ((Color.blue(myColor.color) * myColor.progress) / 100), (byte) 0);
         #         if (myColor.warmWhite != 0) {
@@ -162,12 +196,14 @@ class HappyLightDevice:
         #             bArr[4] = (byte) (((myColor.progress * 255) / 100) & 255);
         #             synTimedata((byte) 65, (byte) 0, (byte) 0, (byte) 0, (byte) 0, (byte) (((myColor.progress * 255) / 100) & 255));
         #         }
-       
-        brightness =color.get('brightness')
-        brightness = 3 if brightness<3 else brightness
-        red = color.get('red')
-        green = color.get('green')
-        blue = color.get('blue')
-        data = bytes([86,int(red*brightness/100),int(green*brightness/100),int(blue*brightness/100),0, -16 & 0xff, -86 & 0xff])
-        await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,data)
-        self.state.set_state(red,green,blue,brightness)
+        if await self.connect():
+            brightness =color.get('brightness')
+            brightness = 3 if brightness<3 else brightness
+            red = color.get('red')
+            green = color.get('green')
+            blue = color.get('blue')
+            data = bytes([86,int(red*brightness/100),int(green*brightness/100),int(blue*brightness/100),0, -16 & 0xff, -86 & 0xff])
+            await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,data)
+            self.state.set_state(red,green,blue,brightness)
+            return True
+        return False
