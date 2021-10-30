@@ -7,7 +7,7 @@ class DeviceState:
         self.green = 255
         self.blue = 255
         self.brightness = 255
-        self.power_state = False
+        self.power_state = False        
     def __str__(self):
         power = 'ON' if self.power_state else 'OFF'
         return f"Power: {power}, RGB({self.red},{self.green},{self.blue}), Brightness: {self.brightness}"
@@ -55,29 +55,61 @@ class HappyLightDevice:
         self.client = BleakClient(address)  
         self.client.set_disconnected_callback(self.on_disconnected)
         self.state = DeviceState()
+        self.auto_reconnect = True
+        self.is_connecting = False
+        self.reconnect_task = None
         
         
     
     def on_disconnected(self, client):
         print(f'device {self.address} is disconnected')
+        asyncio.create_task(self.re_connect(3))
+
+    async def re_connect(self, timeout =0):
+        await asyncio.sleep(timeout)
+        if not self.client.is_connected:
+            print(f'Reconnecting to {self.address}')
+            try:
+                if not self.is_connecting:
+                    is_connected = await self.connect()   
+                    if not is_connected:
+                        print(f'Reconnecting FAIL. retry in {timeout}')
+                    
+                        self.reconnect_task = asyncio.create_task(self.re_connect(timeout=timeout))
+                
+            except Exception as e:
+                print(e) 
+            
 
     async def connect(self) -> bool:        
         if not self.client.is_connected:
-            print(f'connecting to HappyLightDevice at {self.address}')
-            is_connected = await self.client.connect()
-            print(f'is_connected: {is_connected}, client.is_connected: {self.client.is_connected}')
-            if self.client.is_connected:
-                if  self.is_first_connected:
-                    self.is_first_connected = False
-                    
-                print('set notify to Data')
-                await self.client.start_notify(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_DATA_UUID,self.on_recv_data)
-                print('got notified')
-                await self.sync_data()
-               
-                # await self.client.start_notify(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,self.on_recv_wrgb_data)
-                # above unsupported 
-            return is_connected
+            try:
+                print(f'connecting to HappyLightDevice at {self.address}')
+                if self.is_connecting:
+                    raise Exception('Already Reconnecting');
+                self.is_connecting = True
+                is_connected = await self.client.connect()
+                print(f'is_connected: {is_connected}, client.is_connected: {self.client.is_connected}')
+                if self.client.is_connected:
+                    if  self.is_first_connected:
+                        self.is_first_connected = False
+                        
+                    print('set notify to Data')
+                    await self.client.start_notify(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_DATA_UUID,self.on_recv_data)
+                    print('got notified')
+                    await self.sync_data()
+                
+                    # await self.client.start_notify(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,self.on_recv_wrgb_data)
+                    # above unsupported 
+                return is_connected
+            except Exception as e:
+                print(e)          
+            finally:
+                self.is_connecting = False
+                print(f'is_connected: {self.client.is_connected}, auto_reconnect: {self.auto_reconnect}')
+                if not self.client.is_connected and self.auto_reconnect:
+                    asyncio.create_task(self.re_connect(3))
+                    return False
 
         else:
             return True
