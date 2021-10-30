@@ -67,10 +67,10 @@ class HappyLightDevice:
 
     async def re_connect(self, timeout =0):
         await asyncio.sleep(timeout)
-        if not self.client.is_connected:
-            print(f'Reconnecting to {self.address}')
+        if not self.client.is_connected:            
             try:
                 if not self.is_connecting:
+                    print(f'Reconnecting to {self.address}')
                     is_connected = await self.connect()   
                     if not is_connected:
                         print(f'Reconnecting FAIL. retry in {timeout}')
