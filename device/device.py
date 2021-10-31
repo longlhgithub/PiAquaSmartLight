@@ -1,22 +1,9 @@
 import asyncio
+from logging import getLogRecordFactory
 from bleak import BleakClient
 import math
-class DeviceState:
-    def __init__(self) -> None:
-        self.red = 255
-        self.green = 255
-        self.blue = 255
-        self.brightness = 255
-        self.power_state = False        
-    def __str__(self):
-        power = 'ON' if self.power_state else 'OFF'
-        return f"Power: {power}, RGB({self.red},{self.green},{self.blue}), Brightness: {self.brightness}"
-    
-    def set_state(self,red,green,blue,brightness):
-        self.red = red
-        self.green = green
-        self.blue = blue
-        self.brightness = brightness
+from device.my_color import MyColor
+from .device_state import DeviceState
 
 
 class HappyLightDevice:
@@ -134,13 +121,11 @@ class HappyLightDevice:
             green = data[7] & 255;
             blue = data[8] & 255;            
             brightness_ratio = float(255) / float(max(red,green,blue))
-            self.state.brightness = math.floor(float(max(red,green,blue))*100/255)
+            brightness = math.ceil(float(max(red,green,blue))*100/255)
             red = red * brightness_ratio
             green = green * brightness_ratio
             blue = blue * brightness_ratio            
-            self.state.red = math.floor(red)
-            self.state.green = math.floor(green)
-            self.state.blue = math.floor(blue)
+            self.state.color = MyColor(math.ceil(red),math.ceil(green), math.ceil(blue), brightness)
             print(f"sync state: {self.state}")
 
 
@@ -188,13 +173,13 @@ class HappyLightDevice:
     async def set_power_slowly(self, state:bool):
         if state == self.state.power_state:
             return True
-        saved_brightness = self.state.brightness
-        init_brightness = self.state.brightness if self.state.power_state else 0
-        target_brightness = self.state.brightness if init_brightness == 0 else 0
+        saved_brightness = self.state.color.brightness
+        init_brightness = self.state.color.brightness if self.state.power_state else 0
+        target_brightness = self.state.color.brightness if init_brightness == 0 else 0
         divied_portion = 50
         step = saved_brightness / divied_portion
         current_brightness = init_brightness
-        await self.set_dimmer(math.floor(current_brightness))
+        await self.set_dimmer(math.ceil(current_brightness))
         if state:
             await self.set_power(True)
         print(f'set_power_slowly: {state}, init:{init_brightness}, target:{target_brightness}, saved: {saved_brightness}')
@@ -204,20 +189,22 @@ class HappyLightDevice:
                 current_brightness += step
             else:
                  current_brightness -= step
-            print(f'current:{current_brightness}, target:{target_brightness}')
-            await self.set_dimmer(math.floor(current_brightness))
+            # print(f'current:{current_brightness}, target:{target_brightness}')
+            await self.set_dimmer(math.ceil(current_brightness))
             await asyncio.sleep(10/1000)
         await self.set_power(state)
         await asyncio.sleep(50/1000)
-        await self.set_dimmer(math.floor(saved_brightness))
+        await self.set_dimmer(math.ceil(saved_brightness))
 
 
 
     async def set_dimmer(self,brightness:int):
-        await self.set_color(red=self.state.red,green=self.state.green,blue = self.state.blue, brightness=brightness)
+        await self.set_rgb_color(red=self.state.color.red,green=self.state.color.green,blue = self.state.color.blue, brightness=brightness)
 
+    async def set_color(self,color:MyColor)-> bool:
+        return await self.set_rgb_color(red=color.red, green=color.green, blue = color.blue, brightness=color.brightness)
 
-    async def set_color(self,**color)-> bool:
+    async def set_rgb_color(self,**color)-> bool:
         #  byte[] bArr = {86, (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.green(myColor.color) * myColor.progress) / 100), (byte) ((Color.blue(myColor.color) * myColor.progress) / 100), (byte) (((myColor.warmWhite * myColor.progress) / 100) & 255), -16, -86};
         #         synTimedata((byte) 65, (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.red(myColor.color) * myColor.progress) / 100), (byte) ((Color.green(myColor.color) * myColor.progress) / 100), (byte) ((Color.blue(myColor.color) * myColor.progress) / 100), (byte) 0);
         #         if (myColor.warmWhite != 0) {
@@ -236,6 +223,6 @@ class HappyLightDevice:
             blue = color.get('blue')
             data = bytes([86,int(red*brightness/100),int(green*brightness/100),int(blue*brightness/100),0, -16 & 0xff, -86 & 0xff])
             await self.client.write_gatt_char(HappyLightDevice.CONSMART_BLE_NOTIFICATION_CHARACTERISTICS_WRGB_UUID,data)
-            self.state.set_state(red,green,blue,brightness)
+            self.state.set_state(MyColor(red,green,blue,brightness))
             return True
         return False

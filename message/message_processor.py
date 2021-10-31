@@ -1,13 +1,19 @@
 
 import asyncio
+from datetime import time
 from bleak import exc
 from message.command import Command
 from device import HappyLightDevice
+from timing.timer import Timer
 class MessageProcessor:
     def __init__(self,device_address) -> None:
+        self.timer:Timer = None
         self.device = HappyLightDevice(device_address)
         # asyncio.ensure_future(self.device.connect())
 
+    def pause_timer(self):
+        if self.timer!=None and self.timer.skip_minor_slot == False:
+            self.timer.skip_minor_slot = True
 
     async def process(self,command:str):  
         try:      
@@ -28,6 +34,7 @@ class MessageProcessor:
                         await self.device.set_power_slowly(True)
                     else:
                         await self.device.set_power_slowly(False)
+                    self.pause_timer()
             elif c == 'color':
                 if len(args) <3 or len(args)>4:
                     print('COLOR CMD -> INVALID ARGS')
@@ -36,7 +43,8 @@ class MessageProcessor:
                     g = int(args[1])
                     b = int(args[2])
                     bright = self.device.state.brightness if len(args)==3 else int(args[3])
-                    await self.device.set_color(red=r,green=g,blue = b, brightness=bright)
+                    await self.device.set_rgb_color(red=r,green=g,blue = b, brightness=bright)
+                    self.pause_timer()
 
             else:
                 print(f"UNSUPPORTED CMD -> {cmd.command}")
