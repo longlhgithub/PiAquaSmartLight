@@ -176,7 +176,7 @@ class HappyLightDevice:
         saved_brightness = self.state.color.brightness
         init_brightness = self.state.color.brightness if self.state.power_state else 0
         target_brightness = self.state.color.brightness if init_brightness == 0 else 0
-        divied_portion = 50
+        divied_portion = 10
         step = saved_brightness / divied_portion
         current_brightness = init_brightness
         await self.set_dimmer(math.ceil(current_brightness))
@@ -191,7 +191,7 @@ class HappyLightDevice:
                  current_brightness -= step
             # print(f'current:{current_brightness}, target:{target_brightness}')
             await self.set_dimmer(math.ceil(current_brightness))
-            await asyncio.sleep(10/1000)
+            await asyncio.sleep(50/1000)
         await self.set_power(state)
         await asyncio.sleep(50/1000)
         await self.set_dimmer(math.ceil(saved_brightness))
