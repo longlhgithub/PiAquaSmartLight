@@ -2,6 +2,7 @@ import datetime
 from math import ceil
 from device import MyColor
 from device import DeviceState
+import json
 class TimeSlot:
     def __init__(self) -> None:
         self.color = MyColor()
@@ -43,6 +44,15 @@ class TimeSlot:
                 return MyColor(ceil(red),ceil(green),ceil(blue),ceil(brightness))
         
         return None
+    
+    def to_object(self):
+        return {
+            "color": self.color.to_object(),
+            "brightness": self.color.brightness,
+            "time": self.time.isoformat(),
+        }
+    def to_json(self):       
+        return json.dumps(self.to_object())
         
         
 

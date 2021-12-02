@@ -1,3 +1,4 @@
+import json
 class MyColor:
     def __init__(self,red = 255, green = 255, blue=255, brightness=100) -> None:
         self.red = red
@@ -12,3 +13,8 @@ class MyColor:
         if not isinstance(o,MyColor):
             return NotImplemented
         return self.red == o.red and self.green == o.green and self.blue == o.blue and self.brightness == o.brightness
+    def to_object(self):
+        return [self.red,self.green,self.blue];
+    def to_json(self):
+        return json.dumps(self.to_object())
+    

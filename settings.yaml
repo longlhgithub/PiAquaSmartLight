@@ -1,7 +1,10 @@
 mqtt:
-  server_url: 192.168.31.88 #broker.emqx.io
-  username: admin
-  password: hoanglong1
+  server_url: localhost #pcbviet.co #localhost #192.168.31.88 #broker.emqx.io
+  port: 1883 #30001
+  # username: admin
+  # password: hoanglong1
+  username: 
+  password: 
 
 pair_device:
   - address: FF:FF:38:5C:1C:3F

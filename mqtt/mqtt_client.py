@@ -2,32 +2,34 @@ import asyncio
 import os
 import signal
 import time
+import gmqtt
 import yaml
 # import uvloop
 
 from gmqtt import Client 
+RPC_COMMAND_TOPIC = 'MQTTnet.RPC/+/'
 class MQTTClient:
     STOP = asyncio.Event()
-    def __init__(self,host,username,password,on_message, cmd_topic="aqualight/cmd") -> None:
+    def __init__(self,host,port,username,password,on_message, cmd_topic="aqualight/cmd") -> None:
         self.host = host
+        self.port = port
         self.username= username
         self.password = password
         self.cmd_topic = cmd_topic
-        self.client = Client("aqualight")
+        self.device_type = 0
+        self.client_id= '123456'
+        self.client = Client(self.client_id,will_message=gmqtt.Message(f'device/0/{self.client_id}/lwt','i died'))
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
-        self.client.on_subscribe = self.on_subscribe        
-        self.client.set_auth_credentials(self.username, self.password)
+        self.client.on_subscribe = self.on_subscribe    
+        if self.username:    
+            self.client.set_auth_credentials(self.username, self.password)
         self.on_message_callback = on_message
-       
-
-       
-       
 
     async def connect(self):
         print(f'connecting to {self.host}')
-        await self.client.connect(self.host)
+        await self.client.connect(self.host,port=self.port)
 
 
     async def disconnect(self):
@@ -42,12 +44,17 @@ class MQTTClient:
     def on_connect(self, client, flags, rc, properties):
         print('MQTT connected')
         print(f'subscribing to {self.cmd_topic}')
-        client.subscribe(self.cmd_topic, qos=0)
+        print(f'{RPC_COMMAND_TOPIC}{self.client_id}.cmd')
+        # client.subscribe(self.cmd_topic, qos=0)
+        client.subscribe(f'{RPC_COMMAND_TOPIC}{self.client_id}.cmd')
+        if callable(self.on_connected):
+             self.on_connected(client)
 
 
     def on_message(self, client, topic, payload:bytes, qos, properties):
-        # print('RECV MSG:', payload)
-        self.on_message_callback(payload.decode('utf-8'))
+        print('RECV MSG:', payload)
+                 
+        self.on_message_callback(payload.decode('utf-8'),topic)
 
 
 
@@ -60,11 +67,14 @@ class MQTTClient:
     def ask_exit(self, *args):
         MQTTClient.STOP.set()
     
+    def publish_state(self,payload):
+        self.client.publish(f'device/{self.device_type}/{self.client_id}/telemetry',payload)
+    
 async def main(client:MQTTClient):
     await client.connect();
    
-    await client.publish('test');
-    client.subscribe('ttt/#')
+    # await client.publish('test');
+    # client.subscribe('ttt/#')
     while True:
         await asyncio.sleep(5)
     
